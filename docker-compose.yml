@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: licitacoes
+      POSTGRES_USER: manus
+      POSTGRES_PASSWORD: manus123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  persistencia:
+    build: ./services/persistencia
+    depends_on:
+      - postgres
+    environment:
+      - DB_HOST=postgres
+    ports:
+      - "8000:8000"
+  extracao:
+    build: ./services/extracao
+    ports:
+      - "8001:8001"
+  enriquecimento:
+    build: ./services/enriquecimento
+    depends_on:
+      - postgres
+    environment:
+      - DB_HOST=postgres
+    ports:
+      - "8002:8002"
+volumes:
+  pgdata:

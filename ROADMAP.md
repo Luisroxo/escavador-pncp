@@ -46,6 +46,8 @@
 - Configurar N8N/Zapier/Make para monitorar uploads no Google Drive. ✅
 - Integrar webhooks para disparar ingestão automática. ✅
 - Testar automação ponta-a-ponta. ✅
+- [ ] Configure alert message delivery
+  - Set up and validate email alert delivery in Alertmanager. ✅
 
 ## 9. Serviço de Visualização/Relatórios
 - Implementar dashboards com Dash/Streamlit ou integração com Power BI/Tableau. ✅
@@ -55,7 +57,7 @@
 ## 10. Segurança e Autenticação
 - Implementar API Gateway (Kong/NGINX/Traefik). ✅
 - Configurar autenticação OAuth2/JWT (Auth0/Keycloak). ✅
-- Testar proteção dos endpoints. ✅
+- Testar proteção dos endpoints. ✅trivy --version
 
 ## 11. Observabilidade e Monitoramento
 - Configurar Prometheus/Grafana para métricas e dashboards. ✅

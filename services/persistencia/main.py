@@ -10,8 +10,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 DB_CONFIG = {
     "dbname": "licitacoes",
-    "user": "manus",
-    "password": "manus123",
+    "user": "luis",
+    "password": "020646Juan",
     "host": "postgres"
 }
 

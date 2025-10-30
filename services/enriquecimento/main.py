@@ -29,6 +29,7 @@ def get_cnpj_data(cnpj_clean):
     try:
         logging.info(f"Consultando BrasilAPI para o CNPJ: {cnpj_clean}")
         response = requests.get(f"{BRASILAPI_CNPJ_URL}{cnpj_clean}", timeout=10)
+        logging.info(f"Resposta da BrasilAPI: {response.status_code} - {response.text}")
         response.raise_for_status()
         logging.info("Dados recebidos da BrasilAPI com sucesso.")
         return response.json()
@@ -37,8 +38,37 @@ def get_cnpj_data(cnpj_clean):
         return None
 
 def validar_cnpj(cnpj):
-    padrao = re.compile(r'^[0-9]{14}$')
-    return padrao.match(cnpj) is not None
+    """
+    Valida o formato e os dígitos verificadores de um CNPJ.
+    """
+    # Remove caracteres não numéricos
+    cnpj = re.sub(r'[^0-9]', '', cnpj)
+
+    # Verifica se o CNPJ tem 14 dígitos
+    if len(cnpj) != 14:
+        return False
+
+    # Calcula os dígitos verificadores
+    def calcular_dv(cnpj, pesos):
+        soma = sum(int(cnpj[i]) * pesos[i] for i in range(len(pesos)))
+        resto = soma % 11
+        return '0' if resto < 2 else str(11 - resto)
+
+    # Pesos para o primeiro e segundo dígitos verificadores
+    pesos_primeiro_dv = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    pesos_segundo_dv = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+
+    # Verifica o primeiro dígito verificador
+    primeiro_dv = calcular_dv(cnpj[:12], pesos_primeiro_dv)
+    if cnpj[12] != primeiro_dv:
+        return False
+
+    # Verifica o segundo dígito verificador
+    segundo_dv = calcular_dv(cnpj[:13], pesos_segundo_dv)
+    if cnpj[13] != segundo_dv:
+        return False
+
+    return True
 
 @app.post("/enriquecer-cnpj/{cnpj_clean}")
 def enriquecer_cnpj(cnpj_clean: str):
@@ -58,6 +88,7 @@ def enriquecer_cnpj(cnpj_clean: str):
     try:
         logging.info("Conectando ao banco de dados para atualizar informações.")
         conn = psycopg2.connect(**DB_CONFIG)
+        logging.info("Conexão com o banco de dados estabelecida com sucesso.")
         cur = conn.cursor()
         razao_social = data.get("razao_social")
         situacao_cadastral = data.get("situacao")
@@ -106,6 +137,7 @@ def enriquecer_cnpj(cnpj_clean: str):
                 contato = %s
             WHERE cnpj_cpf = %s;
         """
+        logging.info("Executando query de atualização no banco de dados.")
         cur.execute(update_query, (
             razao_social,
             situacao_cadastral,
@@ -117,6 +149,7 @@ def enriquecer_cnpj(cnpj_clean: str):
             cnpj_clean
         ))
         conn.commit()
+        logging.info("Query executada e alterações confirmadas no banco de dados.")
         cur.close()
         logging.info(f"CNPJ {cnpj_clean} enriquecido com sucesso.")
         return {"message": f"CNPJ {cnpj_clean} enriquecido com sucesso."}

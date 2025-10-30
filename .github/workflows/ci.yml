@@ -39,4 +39,4 @@ jobs:
           python services/extracao/main.py --test
       - name: Test enriquecimento
         run: |
-          python services/enriquecimento/main.py --test
+          pytest services/enriquecimento/test_enriquecimento_integration.py

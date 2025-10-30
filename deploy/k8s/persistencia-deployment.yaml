@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: persistencia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: persistencia
+  template:
+    metadata:
+      labels:
+        app: persistencia
+    spec:
+      containers:
+      - name: persistencia
+        image: escavador-pncp-persistencia:latest
+        env:
+        - name: DB_URL
+          value: "postgresql://luis:020646Juan@postgres:5432/licitacoes"
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: persistencia
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: persistencia

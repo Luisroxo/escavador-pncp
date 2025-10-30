@@ -1,7 +1,13 @@
-import requests
-import json
 import psycopg2
 from fastapi import FastAPI, HTTPException
+
+from prometheus_fastapi_instrumentator import Instrumentator
+
+import json
+import psycopg2
+import requests
+from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 
 DB_CONFIG = {
     "dbname": "licitacoes",
@@ -11,7 +17,9 @@ DB_CONFIG = {
 }
 BRASILAPI_CNPJ_URL = "https://brasilapi.com.br/api/cnpj/v1/"
 
+
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 def get_cnpj_data(cnpj_clean):
     try:

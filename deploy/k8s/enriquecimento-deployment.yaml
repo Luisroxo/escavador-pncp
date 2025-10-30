@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enriquecimento
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enriquecimento
+  template:
+    metadata:
+      labels:
+        app: enriquecimento
+    spec:
+      containers:
+      - name: enriquecimento
+        image: escavador-pncp-enriquecimento:latest
+        env:
+        - name: DB_URL
+          value: "postgresql://luis:020646Juan@postgres:5432/licitacoes"
+        ports:
+        - containerPort: 8002
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enriquecimento
+spec:
+  ports:
+  - port: 8002
+    targetPort: 8002
+  selector:
+    app: enriquecimento

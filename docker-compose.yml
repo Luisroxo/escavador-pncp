@@ -1,13 +1,12 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
     environment:
       POSTGRES_DB: licitacoes
-      POSTGRES_USER: manus
-      POSTGRES_PASSWORD: manus123
+      POSTGRES_USER: luis
+      POSTGRES_PASSWORD: 020646Juan
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
   persistencia:
@@ -15,11 +14,13 @@ services:
     depends_on:
       - postgres
     environment:
-      - DB_HOST=postgres
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
     ports:
       - "8000:8000"
   extracao:
     build: ./services/extracao
+    environment:
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
     ports:
       - "8001:8001"
   enriquecimento:
@@ -27,8 +28,40 @@ services:
     depends_on:
       - postgres
     environment:
-      - DB_HOST=postgres
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
     ports:
       - "8002:8002"
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - persistencia
+      - extracao
+      - enriquecimento
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./monitor/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    depends_on:
+      - prometheus
+
 volumes:
   pgdata:
+  grafana-data:
+  prometheus-data:

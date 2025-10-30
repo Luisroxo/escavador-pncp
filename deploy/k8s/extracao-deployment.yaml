@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: extracao
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: extracao
+  template:
+    metadata:
+      labels:
+        app: extracao
+    spec:
+      containers:
+      - name: extracao
+        image: escavador-pncp-extracao:latest
+        env:
+        - name: DB_URL
+          value: "postgresql://luis:020646Juan@postgres:5432/licitacoes"
+        ports:
+        - containerPort: 8001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: extracao
+spec:
+  ports:
+  - port: 8001
+    targetPort: 8001
+  selector:
+    app: extracao

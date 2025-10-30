@@ -1,7 +1,12 @@
+import json
+import re
+from fastapi import FastAPI, HTTPException
+
 import psycopg2
 import json
 import re
 from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 
 DB_CONFIG = {
     "dbname": "licitacoes",
@@ -10,7 +15,9 @@ DB_CONFIG = {
     "host": "postgres"
 }
 
+
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 def setup_database():
     """Cria a tabela 'participantes' no PostgreSQL."""

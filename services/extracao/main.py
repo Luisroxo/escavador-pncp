@@ -1,10 +1,14 @@
-import re
 import pdfplumber
 import json
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import os
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
+import re
+
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 @app.post("/extrair-cnpjs")
 def extrair_cnpjs(file: UploadFile = File(...)):

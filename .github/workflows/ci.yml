@@ -1,0 +1,42 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: licitacoes
+          POSTGRES_USER: luis
+          POSTGRES_PASSWORD: 020646Juan
+        ports:
+          - 5432:5432
+        options: >
+          --health-cmd "pg_isready -U luis" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r services/persistencia/requirements.txt || pip install fastapi psycopg2-binary uvicorn
+          pip install -r services/extracao/requirements.txt || pip install fastapi pdfplumber uvicorn
+          pip install -r services/enriquecimento/requirements.txt || pip install fastapi requests psycopg2-binary uvicorn
+      - name: Test persistencia
+        run: |
+          python services/persistencia/main.py --test
+      - name: Test extracao
+        run: |
+          python services/extracao/main.py --test
+      - name: Test enriquecimento
+        run: |
+          python services/enriquecimento/main.py --test

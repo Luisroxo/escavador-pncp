@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'persistencia'
+    static_configs:
+      - targets: ['persistencia:8000']
+  - job_name: 'extracao'
+    static_configs:
+      - targets: ['extracao:8001']
+  - job_name: 'enriquecimento'
+    static_configs:
+      - targets: ['enriquecimento:8002']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+rule_files:
+  - 'alert_rules.yml'

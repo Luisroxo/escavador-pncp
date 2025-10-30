@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: licitacoes
+      POSTGRES_USER: luis
+      POSTGRES_PASSWORD: 020646Juan
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  persistencia:
+    image: escavador-pncp-persistencia:latest
+    environment:
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  extracao:
+    image: escavador-pncp-extracao:latest
+    environment:
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
+    ports:
+      - "8001:8001"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  enriquecimento:
+    image: escavador-pncp-enriquecimento:latest
+    environment:
+      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+volumes:
+  pgdata:

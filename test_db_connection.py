@@ -1,6 +1,10 @@
 import psycopg2
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configuração de logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -9,38 +13,29 @@ DB_CONFIG = {
     "dbname": os.getenv("POSTGRES_DB"),
     "user": os.getenv("POSTGRES_USER"),
     "password": os.getenv("POSTGRES_PASSWORD"),
-    "host": os.getenv("POSTGRES_HOST")
+    "host": os.getenv("POSTGRES_HOST"),
+    "port": os.getenv("POSTGRES_PORT")  # Adicionar a porta
 }
 
 def test_db_connection():
     try:
-        print("Conectando ao banco de dados...")
+        logging.info("Conectando ao banco de dados...")
         conn = psycopg2.connect(**DB_CONFIG)
-        print("Conexão estabelecida com sucesso!")
+        logging.info("Conexão estabelecida com sucesso!")
 
-        cur = conn.cursor()
-        print("Verificando a existência da tabela 'participantes'...")
-        cur.execute("""
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'participantes';
-        """)
+        # Testar uma consulta simples
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1;")
+            result = cursor.fetchone()
+            logging.info(f"Resultado da consulta: {result}")
 
-        columns = cur.fetchall()
-        if columns:
-            print("Tabela 'participantes' encontrada com as seguintes colunas:")
-            for column in columns:
-                print(f"- {column[0]}")
-        else:
-            print("Tabela 'participantes' não encontrada.")
+    except psycopg2.Error as e:
+        logging.error(f"Erro ao conectar ou verificar o banco de dados: {e}")
 
-        cur.close()
-    except Exception as e:
-        print(f"Erro ao conectar ou verificar o banco de dados: {e}")
     finally:
-        if conn:
+        if 'conn' in locals() and conn:
             conn.close()
-            print("Conexão com o banco de dados encerrada.")
+            logging.info("Conexão com o banco de dados encerrada.")
 
 if __name__ == "__main__":
     test_db_connection()

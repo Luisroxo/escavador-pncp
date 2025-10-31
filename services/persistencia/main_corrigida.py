@@ -52,22 +52,37 @@ def get_cnpj_data(cnpj_clean: str) -> Optional[dict]:
         data = response.json()
         logging.debug(f"Dados retornados pela BrasilAPI: {json.dumps(data, ensure_ascii=False)}")
         return data
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Erro ao consultar BrasilAPI: {e}")
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"Erro ao consultar BrasilAPI: {req_err}")
         return None
 
 def validar_cnpj(cnpj: str) -> bool:
     """
-    Verifica se a string fornecida é um CNPJ ou CPF válido (11 ou 14 dígitos).
+    Verifica se a string fornecida é um CNPJ válido (14 dígitos) com cálculo dos dígitos verificadores.
 
     Args:
-        cnpj: A string contendo o CNPJ/CPF a ser validado.
+        cnpj: A string contendo o CNPJ a ser validado.
 
     Returns:
         True se for válido, False caso contrário.
     """
-    padrao = re.compile(r'^[0-9]{11,14}$')
-    return padrao.match(cnpj) is not None
+    cnpj = re.sub(r'\D', '', cnpj)  # Remove caracteres não numéricos
+
+    if not cnpj.isdigit() or len(cnpj) != 14 or cnpj in ("00000000000000", "11111111111111", "22222222222222", "33333333333333", "44444444444444", "55555555555555", "66666666666666", "77777777777777", "88888888888888", "99999999999999"):
+        return False
+
+    def calcular_digito(cnpj, peso):
+        soma = sum(int(cnpj[i]) * peso[i] for i in range(len(peso)))
+        resto = soma % 11
+        return '0' if resto < 2 else str(11 - resto)
+
+    peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    peso2 = [6] + peso1
+
+    digito1 = calcular_digito(cnpj[:12], peso1)
+    digito2 = calcular_digito(cnpj[:12] + digito1, peso2)
+
+    return cnpj[-2:] == digito1 + digito2
 
 def safe_decode(data):
     """

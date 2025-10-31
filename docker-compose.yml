@@ -28,7 +28,11 @@ services:
     depends_on:
       - postgres
     environment:
-      - DB_URL=postgresql://luis:020646Juan@postgres:5432/licitacoes
+      - POSTGRES_DB=licitacoes
+      - POSTGRES_USER=luis
+      - POSTGRES_PASSWORD=020646Juan
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
     ports:
       - "8002:8002"
   prometheus:

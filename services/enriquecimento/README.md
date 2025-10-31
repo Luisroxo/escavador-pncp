@@ -1,80 +1,51 @@
-# Serviço de Enriquecimento
+# Serviço Enriquecimento
 
-Integra com APIs públicas e realiza scraping para enriquecer os dados dos participantes.
+Este microserviço é responsável por enriquecer os dados de participantes já existentes no banco de dados, além de atualizar o contato (whatsapp).
 
-## Funcionalidades
-- Validação de CNPJs.
-- Consulta à BrasilAPI para obter dados cadastrais.
-- Atualização de informações no banco de dados PostgreSQL.
+## Endpoints
 
-## Configuração
-1. Certifique-se de que as dependências estão instaladas:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Configure as variáveis de ambiente no arquivo `.env`:
-   ```env
-   POSTGRES_DB=licitacoes
-   POSTGRES_USER=luis
-   POSTGRES_PASSWORD=senha
-   POSTGRES_HOST=localhost
-   ```
+- `POST /enriquecer/{cnpj_clean}`: Atualiza os dados de um participante existente. Não realiza INSERT ou DELETE.
+- `POST /atualizar-contato/{cnpj_clean}`: Atualiza apenas o campo whatsapp do participante.
+- `GET /health`: Verifica a saúde do serviço e do banco de dados.
 
-## Execução
-Para iniciar o serviço, execute:
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8002
-```
+## Observações
+- O serviço **não** manipula redes sociais. Para isso, utilize o microserviço `rede_social`.
+- Retorna 404 se o participante não existir.
+- Retorna 400 para payload inválido ou CNPJ mal formatado.
+- Retorna 500 em caso de erro interno.
 
-## Documentação do Endpoint `/enriquecer-cnpj/{cnpj_clean}`
-
-### Descrição
-Este endpoint permite enriquecer os dados de um CNPJ consultando a BrasilAPI e atualizando as informações no banco de dados.
-
-### Método HTTP
-`POST`
-
-### URL
-`/enriquecer-cnpj/{cnpj_clean}`
-
-### Parâmetros
-- **cnpj_clean** (string): CNPJ sem formatação (apenas números).
-
-### Exemplo de Requisição
-```http
-POST /enriquecer-cnpj/12345678000195 HTTP/1.1
-Host: localhost:8000
-Content-Type: application/json
-```
-
-### Exemplo de Resposta Sucesso (200)
+## Exemplo de payload para enriquecimento
 ```json
 {
-  "message": "CNPJ 12345678000195 enriquecido com sucesso."
+  "razao_social": "Empresa Exemplo",
+  "situacao_cadastral": "Ativa",
+  "porte_empresa": "ME",
+  "capital_social": 100000,
+  "cnaes": ["6201-5/01", "6202-3/00"],
+  "endereco": {
+    "logradouro": "Rua Exemplo",
+    "numero": "123",
+    "bairro": "Centro",
+    "cep": "12345678",
+    "municipio": "Cidade",
+    "uf": "SP"
+  },
+  "contato": {
+    "email": "contato@empresa.com",
+    "telefone": "11999999999"
+  }
 }
 ```
 
-### Exemplo de Resposta Erro (400)
+## Exemplo de payload para contato
 ```json
 {
-  "detail": "CNPJ inválido ou mal formatado."
+  "whatsapp": "11999999999"
 }
 ```
 
-### Exemplo de Resposta Erro (404)
-```json
-{
-  "detail": "Dados não encontrados ou erro na API."
-}
-```
+## Monitoramento
+- Métricas Prometheus disponíveis via instrumentação automática.
 
-### Exemplo de Resposta Erro (500)
-```json
-{
-  "detail": "Erro ao atualizar o banco de dados."
-}
-```
-
-### Notas
-- Certifique-se de que o CNPJ fornecido é válido.
-- O serviço depende da disponibilidade da BrasilAPI e do banco de dados configurado.
+## Testes
+- Testes automatizados disponíveis em `test_endpoints.py`.
